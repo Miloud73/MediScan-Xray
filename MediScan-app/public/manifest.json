@@ -1,0 +1,49 @@
+{
+  "name": "MediScan AI - Clinical Decision Support System",
+  "short_name": "MediScan AI",
+  "description": "AI-powered clinical decision support system for chest X-ray analysis",
+  "start_url": "/?source=pwa",
+  "display": "standalone",
+  "background_color": "#111827",
+  "theme_color": "#1E40AF",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en-US",
+  "categories": ["healthcare", "medical", "productivity"],
+  "dir": "ltr",
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Upload X-Ray",
+      "short_name": "Upload",
+      "description": "Upload a new X-ray for analysis",
+      "url": "/analyze",
+      "icons": [{ "src": "/logo3.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "View Results",
+      "short_name": "Results",
+      "description": "View your latest analysis results",
+      "url": "/result",
+      "icons": [{ "src": "/logo3.png", "sizes": "192x192" }]
+    }
+  ],
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/logo3.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/logo3.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ]
+}
