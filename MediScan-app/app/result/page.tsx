@@ -248,10 +248,9 @@ export default function ResultPage() {
         {highRiskCondition && (
           <div className="mb-6">
             <AlertBanner
-              title="High Risk Detection"
-              message={`${highRiskCondition.name} detected with ${(highRiskCondition.confidence * 100).toFixed(1)}% confidence.`}
-              variant="warning"
-            />
+  condition={highRiskCondition.name}
+  confidence={highRiskCondition.confidence}
+/>
           </div>
         )}
 

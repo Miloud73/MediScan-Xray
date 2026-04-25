@@ -86,6 +86,7 @@ def upload_scan(request):
             'has_pneumonia': has_pneumonia,
             'confidence': confidence,
             'probabilities': probabilities,
+            'debug': prediction.get('debug', {})
         }
 
         return Response(result, status=status.HTTP_201_CREATED)
