@@ -240,7 +240,7 @@ const titles = [
                 <button
                   onClick={goToNextStep}
                   disabled={!stepComplete[1]}
-                  className="flex items-center py-2 px-6 text-[#24AE7C] bg-green-700 text-white rounded-md shadow transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  className="flex items-center py-2 px-6  bg-green-700 text-white rounded-md shadow transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
                   Next Step
                   <ArrowRight className="ml-2 h-5 w-5" />
@@ -273,7 +273,7 @@ const titles = [
                 <button
                   onClick={goToNextStep}
                   disabled={!stepComplete[2]}
-                  className="flex items-center py-2 px-6 text-[#24AE7C] bg-green-700 text-white rounded-md shadow transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  className="flex items-center py-2 px-6 bg-green-700 text-white rounded-md shadow transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
                   Next Step
                   <ArrowRight className="ml-2 h-5 w-5" />
@@ -371,7 +371,7 @@ const titles = [
                 <button
                   onClick={handleAnalyze}
                   disabled={isAnalyzing || !image || !vitals?.birthdate || !vitals?.gender}
-                  className="flex items-center py-3 px-8 text-[#24AE7C] bg-green-700 text-white rounded-md shadow transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  className="flex items-center py-3 px-8 bg-green-700 text-white rounded-md shadow transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
                   {isAnalyzing ? (
                     <>

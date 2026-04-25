@@ -145,11 +145,14 @@ export default function ResultPage() {
 
       const sortedConditions =
         result?.predictions && Array.isArray(result.predictions)
-          ? result.predictions.map((p) => [p.label, p.confidence] as [string, number])
+          ? result.predictions.map(
+              (p) => [p.label, p.confidence] as [string, number]
+            )
           : Object.entries(result || {})
               .filter(
                 ([key, value]) =>
-                  ["Normal", "Pneumonia"].includes(key) && typeof value === "number"
+                  ["Normal", "Pneumonia"].includes(key) &&
+                  typeof value === "number"
               )
               .sort(([, a], [, b]) => Number(b) - Number(a))
               .slice(0, 2);
@@ -162,7 +165,9 @@ export default function ResultPage() {
       pdf.setFontSize(11);
       sortedConditions.forEach(([condition, confidence], index) => {
         pdf.text(
-          `${index + 1}. ${condition}: ${(Number(confidence) * 100).toFixed(1)}% confidence`,
+          `${index + 1}. ${condition}: ${(Number(confidence) * 100).toFixed(
+            1
+          )}% confidence`,
           25,
           yPos
         );
@@ -206,7 +211,9 @@ export default function ResultPage() {
             "Findings suggest abnormality that may require further investigation.";
         }
 
-        const text = `${condition} (${(Number(confidence) * 100).toFixed(1)}%): ${advice}`;
+        const text = `${condition} (${(Number(confidence) * 100).toFixed(
+          1
+        )}%): ${advice}`;
         const splitText = pdf.splitTextToSize(text, 170);
         pdf.text(splitText, 25, yPos);
         yPos += splitText.length * 6 + 4;
@@ -248,9 +255,9 @@ export default function ResultPage() {
         {highRiskCondition && (
           <div className="mb-6">
             <AlertBanner
-  condition={highRiskCondition.name}
-  confidence={highRiskCondition.confidence}
-/>
+              condition={highRiskCondition.name}
+              confidence={highRiskCondition.confidence}
+            />
           </div>
         )}
 
@@ -258,17 +265,11 @@ export default function ResultPage() {
           <div>
             <Link
               href="/analyze"
-              className="inline-flex items-center text-slate-600 hover:text-slate-900 mb-3"
+              className="inline-flex items-center px-4 py-2 bg-sky-600 text-white rounded-xl hover:bg-sky-700 mb-3"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Analyze
             </Link>
-            <h1 className="text-3xl font-bold text-slate-900 mb-2">
-              Analysis Results
-            </h1>
-            <p className="text-slate-600">
-              AI-assisted chest X-ray classification: Normal vs Pneumonia
-            </p>
           </div>
 
           <button
@@ -281,7 +282,22 @@ export default function ResultPage() {
           </button>
         </div>
 
-        <div id="diagnosis-report" className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div
+          id="diagnosis-report"
+          className="grid grid-cols-1 lg:grid-cols-3 gap-6"
+        >
+          <div className="lg:col-span-2 space-y-6">
+            {originalImageUrl && (
+              <HeatmapViewer
+                originalImageUrl={originalImageUrl}
+                predictionResult={result || undefined}
+                className="aspect-square w-full"
+              />
+            )}
+
+            <RuleBasedAdvice result={result} />
+          </div>
+
           <div className="lg:col-span-1 space-y-6">
             <PredictionCard result={result} />
 
@@ -300,20 +316,14 @@ export default function ResultPage() {
                   {result.gender && (
                     <div className="flex justify-between">
                       <span>Gender</span>
-                      <span className="font-medium capitalize">{result.gender}</span>
+                      <span className="font-medium capitalize">
+                        {result.gender}
+                      </span>
                     </div>
                   )}
                 </div>
               </div>
             )}
-          </div>
-
-          <div className="lg:col-span-2 space-y-6">
-            {originalImageUrl && (
-              <HeatmapViewer imageUrl={originalImageUrl} />
-            )}
-
-            <RuleBasedAdvice result={result} />
           </div>
         </div>
       </div>
