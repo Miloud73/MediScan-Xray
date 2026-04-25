@@ -1,0 +1,75 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  --slide-count:4;
+  --slide-height:150px;
+  --slide-width:320px;
+--gap:10px;
+--time:50s;
+
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+
+.scrollLeft {
+  display: flex;
+  animation: scrollLeft 20s linear infinite;
+}
+
+.scrollRight {
+  display: flex;
+  animation: scrollRight 20s linear infinite;
+}
+
+@keyframes scrollLeft {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes scrollRight {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.scrollLeft img,
+.scrollRight img {
+  width: 200px;
+  height: auto;
+  margin-right: 1rem;
+  border-radius: 12px;
+}
+
+.scrollLeft:hover, .scrollRight:hover {
+  animation-play-state: paused;
+}
