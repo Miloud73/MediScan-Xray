@@ -26,40 +26,43 @@ class ModelLoader:
         return state
 
     def load_models(self):
-        if self._resnet is None or self._googlenet is None:
-            try:
-                model_dir = os.path.dirname(__file__)
-                resnet_path = os.path.join(model_dir, "resnet_best.pth")
-                googlenet_path = os.path.join(model_dir, "googlenet_best.pth")
+    if self._resnet is None or self._googlenet is None:
+        try:
+            model_dir = os.path.dirname(__file__)
+            resnet_path = os.path.join(model_dir, "resnet_best.pth")
+            googlenet_path = os.path.join(model_dir, "googlenet_best.pth")
 
-                logger.info("Loading ResNet from %s", resnet_path)
-                logger.info("Loading GoogLeNet from %s", googlenet_path)
+            logger.info("Model dir: %s", model_dir)
+            logger.info("ResNet exists: %s", os.path.exists(resnet_path))
+            logger.info("GoogLeNet exists: %s", os.path.exists(googlenet_path))
+            logger.info("Loading ResNet from %s", resnet_path)
+            logger.info("Loading GoogLeNet from %s", googlenet_path)
 
-                resnet = build_resnet(num_classes=2)
-                googlenet = build_googlenet(num_classes=2)
+            resnet = build_resnet(num_classes=2)
+            googlenet = build_googlenet(num_classes=2)
 
-                resnet_state = self._load_state_dict(resnet_path)
-                googlenet_state = self._load_state_dict(googlenet_path)
+            resnet_state = self._load_state_dict(resnet_path)
+            googlenet_state = self._load_state_dict(googlenet_path)
 
-                resnet.load_state_dict(resnet_state, strict=True)
-                googlenet.load_state_dict(googlenet_state, strict=True)
+            resnet.load_state_dict(resnet_state, strict=True)
+            googlenet.load_state_dict(googlenet_state, strict=True)
 
-                resnet.to(self._device)
-                googlenet.to(self._device)
+            resnet.to(self._device)
+            googlenet.to(self._device)
 
-                resnet.eval()
-                googlenet.eval()
+            resnet.eval()
+            googlenet.eval()
 
-                self._resnet = resnet
-                self._googlenet = googlenet
+            self._resnet = resnet
+            self._googlenet = googlenet
 
-                logger.info("ResNet + GoogLeNet loaded successfully on %s", self._device)
+            logger.info("ResNet + GoogLeNet loaded successfully on %s", self._device)
 
-            except Exception as e:
-                logger.exception("Error loading ensemble models: %s", str(e))
-                raise
+        except Exception as e:
+            logger.exception("Error loading ensemble models: %s", str(e))
+            raise
 
-        return self._resnet, self._googlenet
+    return self._resnet, self._googlenet
 
     def get_models(self):
         return self.load_models()
