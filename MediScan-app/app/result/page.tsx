@@ -174,13 +174,19 @@ export default function ResultPage() {
         yPos += 8;
       });
 
-      if (result.age !== undefined || result.gender) {
+      if (result.patientName || result.age !== undefined || result.gender) {
         yPos += 4;
         pdf.setFontSize(14);
         pdf.text("Patient Information:", 20, yPos);
         yPos += 10;
 
+
         pdf.setFontSize(11);
+
+        if (result.patientName) {
+          pdf.text(`Patient Name: ${result.patientName}`, 25, yPos);
+          yPos += 8;
+        }
         if (result.age !== undefined) {
           pdf.text(`Age: ${result.age}`, 25, yPos);
           yPos += 8;
@@ -301,12 +307,18 @@ export default function ResultPage() {
           <div className="lg:col-span-1 space-y-6">
             <PredictionCard result={result} />
 
-            {(result.age !== undefined || result.gender) && (
+            {(result.patientName || result.age !== undefined || result.gender) && (
               <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                 <h2 className="text-xl font-semibold text-slate-900 mb-4">
                   Patient Information
                 </h2>
                 <div className="space-y-3 text-sm text-slate-700">
+                  {result.patientName && (
+                    <div className="flex justify-between">
+                      <span>Patient Name</span>
+                      <span className="font-medium">{result.patientName}</span>
+                    </div>
+                  )}
                   {result.age !== undefined && (
                     <div className="flex justify-between">
                       <span>Age</span>

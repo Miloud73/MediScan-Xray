@@ -44,7 +44,7 @@ const handleVitalsSubmit = (patientVitals: PatientVitals) => {
   setVitals(patientVitals);
   setError(null);
 
-  const isComplete = !!patientVitals.birthdate && !!patientVitals.gender;
+  const isComplete = !!patientVitals.birthdate && !!patientVitals.gender && !!patientVitals.patientName ;
 
   setStepComplete((prev) => ({ ...prev, 2: isComplete }));
 };
@@ -71,8 +71,8 @@ const handleAnalyze = async () => {
     return;
   }
 
-  if (!vitals?.birthdate || !vitals?.gender) {
-  setError("Patient information is required.");
+if (!vitals?.patientName || !vitals?.birthdate || !vitals?.gender) {
+  setError("Patient name, birthdate and gender are required.");
   setCurrentStep(2);
   return;
 }
@@ -91,6 +91,7 @@ const handleAnalyze = async () => {
 
     const formData = new FormData();
     formData.append("image", image.file);
+    formData.append("patientName", vitals.patientName || "");
     formData.append("birthdate", vitals.birthdate || "");
     formData.append("gender", String(vitals.gender ?? ""));
 
@@ -324,6 +325,10 @@ const titles = [
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-4">
         <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
+          <p className="text-sm text-gray-500 dark:text-gray-400">Patient Name</p>
+          <p className="font-medium">{vitals.patientName || "Not provided"}</p>
+        </div>
+        <div className="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-lg">
           <p className="text-sm text-gray-500 dark:text-gray-400">Birthdate</p>
           <p className="font-medium">{vitals.birthdate || "Not provided"}</p>
         </div>
@@ -370,7 +375,7 @@ const titles = [
 
                 <button
                   onClick={handleAnalyze}
-                  disabled={isAnalyzing || !image || !vitals?.birthdate || !vitals?.gender}
+                  disabled={isAnalyzing || !image|| !vitals?.patientName || !vitals?.birthdate || !vitals?.gender}
                   className="flex items-center py-3 px-8 bg-green-700 text-white rounded-md shadow transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
                   {isAnalyzing ? (

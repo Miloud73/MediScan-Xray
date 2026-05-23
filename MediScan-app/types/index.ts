@@ -73,6 +73,7 @@ export interface Prediction {
 }
 
 export interface PatientVitals {
+  patientName: string;
   birthdate: string; // YYYY-MM-DD
   gender: string;    // 'male' | 'female'
 }
@@ -80,6 +81,7 @@ export interface PatientVitals {
 export interface AnalysisResult {
   Normal?: number;
   Pneumonia?: number;
+   patientName: string;
   age?: number;
   gender?: string;
   prediction?: {
@@ -117,4 +119,5 @@ export interface PredictionResponse {
   Pneumonia?: number;
   age?: number;
   gender?: string;
+  patientName: string;
 }

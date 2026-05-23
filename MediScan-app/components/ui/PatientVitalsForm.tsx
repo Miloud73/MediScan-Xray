@@ -6,6 +6,7 @@ import { CalendarDays, UserRound } from "lucide-react";
 type PatientInfo = {
   birthdate: string;
   gender: string;
+  patientName: string;
 };
 
 interface PatientVitalsFormProps {
@@ -18,6 +19,7 @@ export default function PatientVitalsForm({
   initialValues,
 }: PatientVitalsFormProps) {
   const [formData, setFormData] = useState<PatientInfo>({
+    patientName: initialValues?.patientName || "",
     birthdate: initialValues?.birthdate || "",
     gender: initialValues?.gender || "",
   });
@@ -27,11 +29,21 @@ export default function PatientVitalsForm({
   }, [formData, onVitalsSubmit]);
 
   const handleChange = (field: keyof PatientInfo, value: string) => {
+    if (field === "birthdate") {
+      const today = new Date().toISOString().split("T")[0];
+
+      if (value > today) {
+        alert("Birthdate cannot be in the future");
+        return;
+      }
+    }
     setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
   };
+
+  const today = new Date().toISOString().split("T")[0];
 
   return (
     <div className="space-y-6">
@@ -40,11 +52,25 @@ export default function PatientVitalsForm({
           Patient Information
         </h3>
         <p className="text-sm text-gray-600 dark:text-gray-400">
-          Please provide the patient birthdate and gender.
+          Please provide the patient name , birthdate and gender.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Patient Name */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+            <UserRound className="w-4 h-4" />
+            Patient Name
+          </label>
+          <input
+            type="text"
+            value={formData.patientName}
+            onChange={(e) => handleChange("patientName", e.target.value)}
+            placeholder="Enter patient name"
+            className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500"
+          />
+        </div>
         {/* Birthdate */}
         <div className="space-y-2">
           <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
@@ -54,6 +80,7 @@ export default function PatientVitalsForm({
           <input
             type="date"
             value={formData.birthdate}
+            max={today}
             onChange={(e) => handleChange("birthdate", e.target.value)}
             className="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500"
           />

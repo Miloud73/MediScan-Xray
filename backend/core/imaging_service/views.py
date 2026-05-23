@@ -27,7 +27,15 @@ def upload_scan(request):
             )
 
         image_file = request.FILES['image']
+        
+        patient_name = request.data.get('patientName')
+        if not patient_name:
+            return Response(
+                {'error': 'Patient name is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
+        patient_name = str(patient_name).strip()
         prediction = predict_pneumonia(image_file)
 
         has_pneumonia = prediction["has_pneumonia"]
@@ -78,6 +86,8 @@ def upload_scan(request):
             )
 
         result = calculate(**params)
+        
+        result['patientName'] = patient_name
 
         result['age'] = age
         result['gender'] = gender
