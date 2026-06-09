@@ -11,7 +11,7 @@ import useAuth from "@/hooks/useAuth";
 const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
-  const { isAuthenticatedUser, logout, user } = useAuth();
+  const { isAuthenticatedUser, logout } = useAuth();
 
   const navLinks = [
     { name: "Home", href: "/" },
@@ -23,6 +23,27 @@ const Navbar = () => {
   const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
 
   const isActiveLink = (path: string) => pathname === path;
+
+  const handleLogout = () => {
+    logout();
+
+    localStorage.removeItem("authTokens");
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("userData");
+
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    localStorage.removeItem("access");
+    localStorage.removeItem("refresh");
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("token");
+
+    localStorage.removeItem("user");
+    localStorage.removeItem("isAdmin");
+
+    window.location.href = "/";
+  };
 
   return (
     <nav className="bg-white shadow-sm dark:bg-[#131619] dark:text-white transition-colors">
@@ -73,32 +94,32 @@ const Navbar = () => {
           </div>
 
           {/* Right side: auth only */}
-          <div className="hidden md:flex items-center">
-            {isAuthenticatedUser ? (
-              <div className="flex items-center space-x-4">
-                <button
-                  onClick={logout}
-                  className="flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors"
+          <div className="hidden md:flex items-center space-x-3">
+            {!isAuthenticatedUser ? (
+              <>
+                <Link
+                  href="/login"
+                  className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors"
                 >
-                  <LogOut className="h-4 w-4" />
-                  <span>Logout</span>
-                </button>
-              </div>
+                  Login
+                </Link>
+
+                <Link
+                  href="/register"
+                  className="px-3 py-2 rounded-md text-sm font-medium bg-[#24AE7C] text-white hover:bg-green-700 transition-colors"
+                >
+                  Register
+                </Link>
+              </>
             ) : (
-              <Link
-                href="/login"
-                className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors"
+              <button
+                onClick={handleLogout}
+                className="flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors"
               >
-                Login
-              </Link>
-              
+                <LogOut className="h-4 w-4" />
+                <span>Logout</span>
+              </button>
             )}
-            <Link
-                href="/admin-dashboard"
-                className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors"
-              >
-                Admin
-              </Link>
           </div>
 
           {/* Mobile menu button */}
@@ -163,25 +184,35 @@ const Navbar = () => {
             GitHub Repository
           </a>
 
-          {isAuthenticatedUser ? (
+          {!isAuthenticatedUser ? (
+            <>
+              <Link
+                href="/login"
+                className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Login
+              </Link>
+
+              <Link
+                href="/register"
+                className="block px-3 py-2 rounded-md text-base font-medium bg-[#24AE7C] text-white hover:bg-green-700 transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Register
+              </Link>
+            </>
+          ) : (
             <button
               onClick={() => {
-                logout();
+                handleLogout();
                 setMobileMenuOpen(false);
               }}
-              className="flex items-center w-full space-x-2 px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors"
+              className="flex items-center w-full space-x-2 px-3 py-2 rounded-md text-base font-medium text-white bg-red-600 hover:bg-red-700 transition-colors"
             >
               <LogOut className="h-5 w-5" />
               <span>Logout</span>
             </button>
-          ) : (
-            <Link
-              href="/login"
-              className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Login
-            </Link>
           )}
         </div>
       </div>

@@ -56,37 +56,30 @@ const LoginForm = ({
   const accessToken = data.access_token || data.access || data.token;
   const refreshToken = data.refresh_token || data.refresh || data.token;
 
-  if (!accessToken) {
-    throw new Error("Access token not found in login response.");
-  }
-
-  // Format utilisé par useAuth
-  localStorage.setItem(
-    "authTokens",
-    JSON.stringify({
-      access_token: accessToken,
-      refresh_token: refreshToken || accessToken,
-    })
-  );
+  localStorage.setItem("authTokens", JSON.stringify({
+    access_token: accessToken,
+    refresh_token: refreshToken || accessToken,
+  }));
 
   localStorage.setItem("authToken", accessToken);
-
-  // Formats utilisés par les autres pages
   localStorage.setItem("access_token", accessToken);
   localStorage.setItem("refresh_token", refreshToken || accessToken);
   localStorage.setItem("access", accessToken);
   localStorage.setItem("refresh", refreshToken || accessToken);
   localStorage.setItem("accessToken", accessToken);
-  localStorage.setItem("refreshToken", refreshToken || accessToken);
   localStorage.setItem("token", accessToken);
 
-  // Important : useAuth a besoin de userData
   const userData = data.user || {
     username: username,
+    is_staff: false,
+    is_superuser: false,
   };
 
   localStorage.setItem("userData", JSON.stringify(userData));
   localStorage.setItem("user", JSON.stringify(userData));
+
+  const isAdminUser = Boolean(userData.is_staff || userData.is_superuser);
+  localStorage.setItem("isAdmin", isAdminUser ? "true" : "false");
 };
   const handleNormalLogin = async () => {
     const response = await fetch("http://127.0.0.1:8000/api/auth/login/", {

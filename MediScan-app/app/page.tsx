@@ -41,13 +41,14 @@ export default function Home() {
     },
   ];
   const { isAuthenticatedUser } = useAuth();
-  const [mounted, setMounted] = useState(false);
+const [mounted, setMounted] = useState(false);
+const [isAdmin, setIsAdmin] = useState(false);
 
-  // Wait for client-side mount to check authentication
-  const [isAdmin, setIsAdmin] = useState(false);
 
 useEffect(() => {
   setMounted(true);
+
+  const adminFlag = localStorage.getItem("isAdmin") === "true";
 
   const userData =
     localStorage.getItem("userData") || localStorage.getItem("user");
@@ -55,12 +56,12 @@ useEffect(() => {
   if (userData) {
     try {
       const parsedUser = JSON.parse(userData);
-      setIsAdmin(Boolean(parsedUser.is_staff || parsedUser.is_superuser));
+      setIsAdmin(Boolean(parsedUser.is_staff || parsedUser.is_superuser || adminFlag));
     } catch {
-      setIsAdmin(false);
+      setIsAdmin(adminFlag);
     }
   } else {
-    setIsAdmin(false);
+    setIsAdmin(adminFlag);
   }
 }, []);
 
@@ -76,6 +77,7 @@ const handleLogout = () => {
   localStorage.removeItem("accessToken");
   localStorage.removeItem("refreshToken");
   localStorage.removeItem("token");
+
   localStorage.removeItem("user");
   localStorage.removeItem("isAdmin");
 
@@ -133,65 +135,65 @@ const handleLogout = () => {
                   ))}
                 </section>
                 <div className="flex flex-wrap justify-center items-center gap-4">
-  {!isAuthenticatedUser && (
-    <>
-      <Link
-        href="/login"
-        className="inline-flex items-center px-6 py-3 bg-[#24AE7C] text-white font-medium rounded-lg transition-colors"
-      >
-        Login to Start
-        <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
-      </Link>
+                  {!isAuthenticatedUser && (
+                    <>
+                      <Link
+                        href="/login"
+                        className="inline-flex items-center px-6 py-3 bg-[#24AE7C] text-white font-medium rounded-lg transition-colors"
+                      >
+                        Login to Start
+                        <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
+                      </Link>
 
-      <Link
-        href="/login?admin=true&redirect=/admin-dashboard"
-        className="inline-flex items-center px-6 py-3 bg-slate-900 hover:bg-slate-700 text-white font-medium rounded-lg transition-colors"
-      >
-        Admin Dashboard
-        <Shield className="ml-2 h-5 w-5" aria-hidden="true" />
-      </Link>
-    </>
-  )}
+                      <Link
+                        href="/login?admin=true&redirect=/admin-dashboard"
+                        className="inline-flex items-center px-6 py-3 bg-slate-900 hover:bg-slate-700 text-white font-medium rounded-lg transition-colors"
+                      >
+                        Admin Dashboard
+                        <Shield className="ml-2 h-5 w-5" aria-hidden="true" />
+                      </Link>
+                    </>
+                  )}
 
-  {isAuthenticatedUser && !isAdmin && (
-    <Link
-      href="/analyze"
-      className="inline-flex items-center px-6 py-3 bg-[#24AE7C] text-white font-medium rounded-lg transition-colors"
-    >
-      Analyze
-      <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
-    </Link>
-  )}
+                  {isAuthenticatedUser && !isAdmin && (
+                    <Link
+                      href="/analyze"
+                      className="inline-flex items-center px-6 py-3 bg-[#24AE7C] text-white font-medium rounded-lg transition-colors"
+                    >
+                      Analyze
+                      <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
+                    </Link>
+                  )}
 
-  {isAuthenticatedUser && isAdmin && (
-    <Link
-      href="/admin-dashboard"
-      className="inline-flex items-center px-6 py-3 bg-slate-900 hover:bg-slate-700 text-white font-medium rounded-lg transition-colors"
-    >
-      Admin Dashboard
-      <Shield className="ml-2 h-5 w-5" aria-hidden="true" />
-    </Link>
-  )}
+                  {isAuthenticatedUser && isAdmin && (
+                    <Link
+                      href="/admin-dashboard"
+                      className="inline-flex items-center px-6 py-3 bg-slate-900 hover:bg-slate-700 text-white font-medium rounded-lg transition-colors"
+                    >
+                      Admin Dashboard
+                      <Shield className="ml-2 h-5 w-5" aria-hidden="true" />
+                    </Link>
+                  )}
 
-  {isAuthenticatedUser && (
-    <button
-      type="button"
-      onClick={handleLogout}
-      className="inline-flex items-center px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors"
-    >
-      Logout
-      <LogOut className="ml-2 h-5 w-5" aria-hidden="true" />
-    </button>
-  )}
+                  {isAuthenticatedUser && (
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      className="inline-flex items-center px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors"
+                    >
+                      Logout
+                      <LogOut className="ml-2 h-5 w-5" aria-hidden="true" />
+                    </button>
+                  )}
 
-  <Link
-    href="/about"
-    className="inline-flex items-center px-6 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-white font-medium rounded-lg transition-colors"
-    aria-label="Learn More"
-  >
-    Learn More
-  </Link>
-</div>
+                  <Link
+                    href="/about"
+                    className="inline-flex items-center px-6 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-white font-medium rounded-lg transition-colors"
+                    aria-label="Learn More"
+                  >
+                    Learn More
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
