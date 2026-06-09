@@ -14,6 +14,7 @@ const RegisterForm = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [validationError, setValidationError] = useState("");
+  const [apiError, setApiError] = useState("");
   // Field-specific error messages
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const router = useRouter();
@@ -25,6 +26,7 @@ const RegisterForm = () => {
       [e.target.name]: e.target.value,
     });
     setValidationError("");
+    setApiError("");
 
     // Clear field-specific error when user types
     if (fieldErrors[e.target.name]) {
@@ -37,43 +39,103 @@ const RegisterForm = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setValidationError("");
-    setFieldErrors({});
+  e.preventDefault();
 
-    // Validate form inputs
-    if (!formData.username || !formData.email || !formData.password) {
-      setValidationError("All fields are required");
-      return;
+  setValidationError("");
+  setApiError("");
+  setFieldErrors({});
+
+  if (!formData.username || !formData.email || !formData.password) {
+    setValidationError("All fields are required");
+    return;
+  }
+
+  if (formData.password !== formData.confirmPassword) {
+    setValidationError("Passwords do not match");
+    return;
+  }
+
+  if (formData.password.length < 6) {
+    setValidationError("Password must be at least 6 characters long");
+    return;
+  }
+
+  setIsLoading(true);
+
+  try {
+    const response = await fetch("http://127.0.0.1:8000/api/auth/signup/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        username: formData.username,
+        email: formData.email,
+        password: formData.password,
+      }),
+    });
+
+    const contentType = response.headers.get("content-type");
+
+    if (!contentType || !contentType.includes("application/json")) {
+      const text = await response.text();
+      console.error("Signup returned non-JSON:", text);
+      throw new Error("Signup API did not return JSON. Check backend URL.");
     }
 
-    if (formData.password !== formData.confirmPassword) {
-      setValidationError("Passwords do not match");
-      return;
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error("Signup error:", data);
+
+      if (data.username) {
+        setFieldErrors({
+          username: Array.isArray(data.username)
+            ? data.username[0]
+            : String(data.username),
+        });
+      }
+
+      if (data.email) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          email: Array.isArray(data.email)
+            ? data.email[0]
+            : String(data.email),
+        }));
+      }
+
+      if (data.password) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          password: Array.isArray(data.password)
+            ? data.password[0]
+            : String(data.password),
+        }));
+      }
+
+      const message =
+        data.username?.[0] ||
+        data.email?.[0] ||
+        data.password?.[0] ||
+        data.error ||
+        data.detail ||
+        "Registration failed.";
+
+      throw new Error(message);
     }
 
-    if (formData.password.length < 6) {
-      setValidationError("Password must be at least 6 characters long");
-      return;
-    }
+    sessionStorage.setItem("registrationSuccess", "true");
+    sessionStorage.setItem("registeredEmail", formData.email);
 
-    setIsLoading(true);
-
-    try {
-      const success = await register(
-        formData.username,
-        formData.email,
-        formData.password
-      );
-
-      // If registration is successful, the router will redirect in useAuth.tsx
-      // If not, we'll get errors in the error state from useAuth
-    } catch (err) {
-      console.error("Registration error:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  }; // Parse API error message which might contain field-specific errors
+    router.push("/login");
+  } catch (err: any) {
+    console.error("Registration error:", err);
+    setApiError(err.message || "Registration failed.");
+  } finally {
+    setIsLoading(false);
+  }
+}; // Parse API error message which might contain field-specific errors
   const parseApiError = (errorMessage: string | null): string | undefined => {
     if (!errorMessage) return undefined;
 
@@ -117,6 +179,9 @@ const RegisterForm = () => {
     if (validationError) {
       return [validationError, {}];
     }
+      if (apiError) {
+    return [apiError, {}];
+  }
 
     if (error) {
       try {
@@ -152,7 +217,7 @@ const RegisterForm = () => {
     }
 
     return [undefined, {}];
-  }, [validationError, error]);
+  }, [validationError, apiError, error]);
   // Apply parsed field errors
   useEffect(() => {
     if (Object.keys(parsedFieldErrors).length > 0) {

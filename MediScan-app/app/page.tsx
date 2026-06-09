@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import useAuth from "@/hooks/useAuth";
-import { ArrowRight, Layers, Shield, BarChart3, Images } from "lucide-react";
+import { ArrowRight, Layers, Shield, BarChart3, LogOut  } from "lucide-react";
 import StructuredData from "@/components/ui/StructuredData";
 import Slider from "@/components/Slider";
 
@@ -44,9 +44,43 @@ export default function Home() {
   const [mounted, setMounted] = useState(false);
 
   // Wait for client-side mount to check authentication
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+useEffect(() => {
+  setMounted(true);
+
+  const userData =
+    localStorage.getItem("userData") || localStorage.getItem("user");
+
+  if (userData) {
+    try {
+      const parsedUser = JSON.parse(userData);
+      setIsAdmin(Boolean(parsedUser.is_staff || parsedUser.is_superuser));
+    } catch {
+      setIsAdmin(false);
+    }
+  } else {
+    setIsAdmin(false);
+  }
+}, []);
+
+const handleLogout = () => {
+  localStorage.removeItem("authTokens");
+  localStorage.removeItem("authToken");
+  localStorage.removeItem("userData");
+
+  localStorage.removeItem("access_token");
+  localStorage.removeItem("refresh_token");
+  localStorage.removeItem("access");
+  localStorage.removeItem("refresh");
+  localStorage.removeItem("accessToken");
+  localStorage.removeItem("refreshToken");
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+  localStorage.removeItem("isAdmin");
+
+  window.location.href = "/";
+};
 
   if (!mounted) {
     return null; // Return nothing during SSR
@@ -99,21 +133,65 @@ export default function Home() {
                   ))}
                 </section>
                 <div className="flex flex-wrap justify-center items-center gap-4">
-                  <Link
-                    href={isAuthenticatedUser ? "/analyze" : "/login"}
-                    className="inline-flex items-center px-6 py-3 bg-[#24AE7C] bg-green-700 text-white font-medium rounded-lg transition-colors"
-                  >
-                    {isAuthenticatedUser ? "Analyze " : "Login to Start"}
-                    <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
-                  </Link>
-                  <Link
-                    href="/about"
-                    className="inline-flex items-center px-6 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-white font-medium rounded-lg transition-colors"
-                    aria-label="Learn More"
-                  >
-                    Learn More
-                  </Link>
-                </div>
+  {!isAuthenticatedUser && (
+    <>
+      <Link
+        href="/login"
+        className="inline-flex items-center px-6 py-3 bg-[#24AE7C] text-white font-medium rounded-lg transition-colors"
+      >
+        Login to Start
+        <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
+      </Link>
+
+      <Link
+        href="/login?admin=true&redirect=/admin-dashboard"
+        className="inline-flex items-center px-6 py-3 bg-slate-900 hover:bg-slate-700 text-white font-medium rounded-lg transition-colors"
+      >
+        Admin Dashboard
+        <Shield className="ml-2 h-5 w-5" aria-hidden="true" />
+      </Link>
+    </>
+  )}
+
+  {isAuthenticatedUser && !isAdmin && (
+    <Link
+      href="/analyze"
+      className="inline-flex items-center px-6 py-3 bg-[#24AE7C] text-white font-medium rounded-lg transition-colors"
+    >
+      Analyze
+      <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
+    </Link>
+  )}
+
+  {isAuthenticatedUser && isAdmin && (
+    <Link
+      href="/admin-dashboard"
+      className="inline-flex items-center px-6 py-3 bg-slate-900 hover:bg-slate-700 text-white font-medium rounded-lg transition-colors"
+    >
+      Admin Dashboard
+      <Shield className="ml-2 h-5 w-5" aria-hidden="true" />
+    </Link>
+  )}
+
+  {isAuthenticatedUser && (
+    <button
+      type="button"
+      onClick={handleLogout}
+      className="inline-flex items-center px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors"
+    >
+      Logout
+      <LogOut className="ml-2 h-5 w-5" aria-hidden="true" />
+    </button>
+  )}
+
+  <Link
+    href="/about"
+    className="inline-flex items-center px-6 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-white font-medium rounded-lg transition-colors"
+    aria-label="Learn More"
+  >
+    Learn More
+  </Link>
+</div>
               </div>
             </div>
           </div>
@@ -170,15 +248,28 @@ export default function Home() {
                   Start using our AI-assisted chest X-ray analysis tool today.
                 </p>
               </div>
-              <Link
-                href={isAuthenticatedUser ? "/analyze" : "/login"}
-                className="inline-block px-8 py-4 bg-white text-[#24AE7C] font-bold rounded-lg shadow hover:bg-green-50 transition-colors"
-                aria-label={
-                  isAuthenticatedUser ? "Start Analysis" : "Login Now"
-                }
-              >
-                {isAuthenticatedUser ? "Start Analysis" : "Login Now"}
-              </Link>
+              {!isAuthenticatedUser ? (
+  <Link
+    href="/login"
+    className="inline-block px-8 py-4 bg-white text-[#24AE7C] font-bold rounded-lg shadow hover:bg-green-50 transition-colors"
+  >
+    Login Now
+  </Link>
+) : !isAdmin ? (
+  <Link
+    href="/analyze"
+    className="inline-block px-8 py-4 bg-white text-[#24AE7C] font-bold rounded-lg shadow hover:bg-green-50 transition-colors"
+  >
+    Start Analysis
+  </Link>
+) : (
+  <Link
+    href="/admin-dashboard"
+    className="inline-block px-8 py-4 bg-white text-[#24AE7C] font-bold rounded-lg shadow hover:bg-green-50 transition-colors"
+  >
+    Open Admin Dashboard
+  </Link>
+)}
             </div>
           </div>
         </section>

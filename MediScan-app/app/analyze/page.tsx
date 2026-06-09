@@ -87,21 +87,22 @@ const handleAnalyze = async () => {
       throw new Error("Authentication token not found. Please login again.");
     }
 
-    const apiBaseUrl = getApiBaseUrl().replace(/\/$/, "");
+    const apiBaseUrl = getApiBaseUrl();
+const cleanApiBaseUrl = apiBaseUrl.replace(/\/$/, "");
 
-    const formData = new FormData();
-    formData.append("image", image.file);
-    formData.append("patientName", vitals.patientName || "");
-    formData.append("birthdate", vitals.birthdate || "");
-    formData.append("gender", String(vitals.gender ?? ""));
+const formData = new FormData();
+formData.append("image", image.file);
+formData.append("patientName", vitals.patientName || "");
+formData.append("birthdate", vitals.birthdate || "");
+formData.append("gender", String(vitals.gender ?? ""));
 
-    const response = await fetch(`${apiBaseUrl}/api/upload-scan/`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: formData,
-    });
+const response = await fetch(`${cleanApiBaseUrl}/api/upload-scan/`, {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${token}`,
+  },
+  body: formData,
+});
 
     const contentType = response.headers.get("content-type");
 

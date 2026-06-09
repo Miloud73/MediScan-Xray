@@ -1,23 +1,29 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import LoginForm from "@/components/ui/LoginForm";
 import useAuth from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
-
+import { useSearchParams, useRouter } from "next/navigation";
 export default function LoginPage() {
   const { isAuthenticatedUser, isLoading } = useAuth();
   const router = useRouter();
+const searchParams = useSearchParams();
+
+const isAdminLogin = searchParams.get("admin") === "true";
+
+const redirect =
+  searchParams.get("redirect") ||
+  (isAdminLogin ? "/admin-dashboard" : "/analyze");
 
   // Redirect to analyze page if already authenticated
-  useEffect(() => {
-    if (!isLoading && isAuthenticatedUser) {
-      router.push("/analyze");
-    }
-  }, [isAuthenticatedUser, isLoading, router]);
+useEffect(() => {
+  if (!isLoading && isAuthenticatedUser && !isAdminLogin) {
+    router.push(redirect);
+  }
+}, [isAuthenticatedUser, isLoading, router, redirect, isAdminLogin]);
 
   // Show loading state while checking authentication
   if (isLoading) {
@@ -98,13 +104,18 @@ export default function LoginPage() {
         <div className="md:w-1/2 p-8 flex flex-col justify-center backdrop-blur-[2px]">
           <div className="max-w-md mx-auto w-full bg-gray-900/80 p-8 rounded-lg shadow-2xl backdrop-blur-[2px]">
             <div className="mb-8">
-              <h2 className="text-2xl font-bold mb-2 text-white">Sign In</h2>
+              <h2 className="text-2xl font-bold mb-2 text-white">
+                {isAdminLogin ? "Admin Sign In" : "Sign In"}
+              </h2>
+
               <p className="text-gray-300">
-                Enter your credentials to access the platform
+                {isAdminLogin
+                  ? "Enter your admin credentials to access the dashboard"
+                  : "Enter your credentials to access the platform"}
               </p>
             </div>
 
-            <LoginForm />
+            <LoginForm  isAdminLogin={isAdminLogin} redirect={redirect}/>
 
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-300">

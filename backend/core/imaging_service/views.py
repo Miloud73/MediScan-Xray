@@ -3,9 +3,14 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from .knowledge_base import calculate
 from .predictor import predict_combined_xray
+
+from django.contrib.auth import get_user_model
+from django.db.models import Avg
+from .models import ScanResult
+
 
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
@@ -144,6 +149,20 @@ def upload_scan(request):
                 "specialist": None,
                 "diseases": []
             }
+        scan = ScanResult.objects.create(
+            patient_name=patient_name,
+            age=age,
+            gender=gender,
+            diagnosis_type=result["ui_decision"]["type"],
+            final_status=prediction["final_status"],
+            has_pneumonia=has_pneumonia,
+            confidence=confidence,
+            detected_diseases=prediction["final_detected_diseases"],
+            probabilities=probabilities,
+            created_by=request.user
+        )
+
+        print("SCAN SAVED ID =", scan.id)
 
         return Response(result, status=status.HTTP_201_CREATED)
 
@@ -152,3 +171,81 @@ def upload_scan(request):
             {'error': str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+        
+        
+        
+@api_view(['GET'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAdminUser])
+def admin_dashboard(request):
+    User = get_user_model()
+
+    total_scans = ScanResult.objects.count()
+    total_users = User.objects.count()
+
+    pneumonia_count = ScanResult.objects.filter(
+        diagnosis_type="pneumonia"
+    ).count()
+
+    anomaly_count = ScanResult.objects.filter(
+        diagnosis_type="other_pulmonary_disease"
+    ).count()
+
+    normal_count = ScanResult.objects.filter(
+        diagnosis_type="normal"
+    ).count()
+
+    male_count = ScanResult.objects.filter(gender="male").count()
+    female_count = ScanResult.objects.filter(gender="female").count()
+
+    avg_age = ScanResult.objects.aggregate(
+        avg_age=Avg("age")
+    )["avg_age"]
+
+    scans = ScanResult.objects.order_by("-created_at")[:50]
+
+    patients_data = []
+
+    for scan in scans:
+        patients_data.append({
+            "id": scan.id,
+            "patient_name": scan.patient_name,
+            "age": scan.age,
+            "gender": scan.gender,
+            "diagnosis_type": scan.diagnosis_type,
+            "final_status": scan.final_status,
+            "has_pneumonia": scan.has_pneumonia,
+            "confidence": scan.confidence,
+            "detected_diseases": scan.detected_diseases,
+            "created_at": scan.created_at,
+            "created_by": scan.created_by.username if scan.created_by else None,
+        })
+
+    users = User.objects.all().order_by("-date_joined")
+
+    users_data = []
+
+    for user in users:
+        users_data.append({
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "is_staff": user.is_staff,
+            "is_superuser": user.is_superuser,
+            "date_joined": user.date_joined,
+        })
+
+    return Response({
+        "statistics": {
+            "total_scans": total_scans,
+            "total_users": total_users,
+            "pneumonia_count": pneumonia_count,
+            "anomaly_count": anomaly_count,
+            "normal_count": normal_count,
+            "male_count": male_count,
+            "female_count": female_count,
+            "average_age": round(avg_age, 2) if avg_age else 0,
+        },
+        "patients": patients_data,
+        "users": users_data
+    })
