@@ -78,23 +78,47 @@ export interface PatientVitals {
   gender: string;    // 'male' | 'female'
 }
 
+export interface DiseasePrediction {
+  label: string;
+  probability?: number;
+  percentage?: number;
+  confidence?: number;
+  detected?: boolean;
+  source_model?: string;
+}
+
+export interface UIDecision {
+  type: "pneumonia" | "other_pulmonary_disease" | "normal";
+  title: string;
+  message: string;
+  specialist_required: boolean;
+  specialist?: string | null;
+  diseases?: DiseasePrediction[];
+  detected_labels?: string[];
+}
+
 export interface AnalysisResult {
   Normal?: number;
   Pneumonia?: number;
-   patientName: string;
+
+  patientName: string;
   age?: number;
   gender?: string;
+
   prediction?: {
     label?: string;
+    final_status?: string;
     has_pneumonia?: boolean;
     confidence?: number;
-    probabilities?: {
-      NORMAL?: number;
-      PNEUMONIA?: number;
-    };
+    probabilities?: Record<string, number>;
   };
+
   predictions?: Prediction[];
   topPrediction?: Prediction;
+
+  final_detected_diseases?: DiseasePrediction[];
+  ui_decision?: UIDecision;
+
   success?: boolean;
   error?: string;
 }
@@ -108,13 +132,24 @@ export interface ApiResponse<T> {
 export interface PredictionResponse {
   prediction?: {
     label: string;
+    final_status?: string;
     has_pneumonia: boolean;
     confidence: number;
-    probabilities: {
-      NORMAL: number;
-      PNEUMONIA: number;
-    };
+    probabilities: Record<string, number>;
   };
+
+  pneumonia_prediction?: Record<string, any>;
+
+  multi_label_prediction?: {
+    detected_diseases?: DiseasePrediction[];
+    top_prediction?: DiseasePrediction;
+    all_probabilities?: DiseasePrediction[];
+  };
+
+  final_detected_diseases?: DiseasePrediction[];
+
+  ui_decision?: UIDecision;
+
   Normal?: number;
   Pneumonia?: number;
   age?: number;

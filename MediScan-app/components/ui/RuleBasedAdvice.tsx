@@ -11,226 +11,84 @@ const RuleBasedAdvice: React.FC<RuleBasedAdviceProps> = ({
   result,
   className = "",
 }) => {
-  // Handle both structured and flat data formats
-  let diagnosisEntries: Array<{ label: string; confidence: number }> = [];
+  const uiDecision = result?.ui_decision;
 
-  if (
-    result.predictions &&
-    Array.isArray(result.predictions) &&
-    result.predictions.length > 0
-  ) {
-    // Handle the case where result has predictions array (from mockService)
-    diagnosisEntries = result.predictions.map(
-      (p: { label: string; confidence: number }) => ({
-        label: p.label,
-        confidence: p.confidence,
-      })
-    );
-  } else if (result.topPrediction && typeof result.topPrediction === "object") {
-    // Use topPrediction if available
-    diagnosisEntries = [
-      {
-        label: String(result.topPrediction.label),
-        confidence: Number(result.topPrediction.confidence),
-      },
-    ];
-  } else {
-    // Handle the flat object structure
-    diagnosisEntries = Object.entries(result)
-      .filter(
-        ([key]) =>
-          ![
-            "age",
-            "topPrediction",
-            "predictions",
-            "heatmapUrl",
-            "regions",
-            "severity",
-            "diagnosisWithVitals",
-            "treatmentSuggestions",
-            "vitals",
-          ].includes(key)
-      )
-      .map(([label, confidence]) => ({
-        label: String(label),
-        confidence: Number(confidence),
-      }));
-  }
-
-  // Find the top prediction (highest confidence)
-  const topPrediction = diagnosisEntries.reduce(
-    (max, current) => (current.confidence > max.confidence ? current : max),
-    { label: "", confidence: 0 }
-  );
-
-  // Get appropriate advice based on top prediction and confidence level
   const getAdvice = () => {
-    const label = topPrediction.label.toLowerCase();
-    const confidence = topPrediction.confidence;
-
-    // Normal case
-    if (label === "normal") {
-      if (confidence > 0.9) {
-        return {
-          title: "No Significant Findings",
-          description:
-            "The chest X-ray appears normal with high confidence. No further imaging studies are indicated unless clinically warranted.",
-          icon: <Stethoscope className="h-5 w-5 text-green-500" />,
-          recommendations: [
-            "Regular follow-up as appropriate for patient age and risk factors",
-            "Consider annual chest X-ray for patients with smoking history or occupational exposures",
-          ],
-        };
-      } else {
-        return {
-          title: "Likely Normal",
-          description:
-            "The chest X-ray appears mostly normal, but with modest confidence. Consider clinical correlation.",
-          icon: <Stethoscope className="h-5 w-5 text-yellow-500" />,
-          recommendations: [
-            "Correlate with patient symptoms",
-            "Consider follow-up imaging in 3-6 months if clinically indicated",
-            "Consider further evaluation if symptomatic",
-          ],
-        };
-      }
+    if (result?.ui_decision?.type === "normal") {
+      return {
+        title: "Normal",
+        description:
+          "Le système n’a pas détecté de pneumonie ni d’autre anomalie pulmonaire significative.",
+        icon: <Stethoscope className="h-5 w-5 text-green-500" />,
+        recommendations: [
+          "Aucune anomalie majeure détectée par le système.",
+          "Consulter un professionnel de santé si les symptômes persistent.",
+          "Ce résultat ne remplace pas l’avis d’un médecin.",
+        ],
+      };
+    }
+    
+    
+    if (result?.ui_decision?.type === "other_pulmonary_disease") {
+      return {
+        title: "Anomalie pulmonaire détectée",
+        description:
+          "L’image ne semble pas indiquer une pneumonie, mais le système a détecté une anomalie pulmonaire possible. Il est recommandé de consulter un spécialiste des poumons pour une interprétation médicale complète.",
+        icon: <AlertTriangle className="h-5 w-5 text-amber-500" />,
+        recommendations: [
+          "Consulter un spécialiste des poumons.",
+          "Ne pas considérer ce résultat comme un diagnostic final.",
+          "Comparer le résultat avec les symptômes du patient.",
+          "Faire une évaluation médicale complète si les symptômes persistent.",
+        ],
+      };
     }
 
-    // COVID-19 case
-    if (label === "covid-19") {
-      if (confidence > 0.8) {
-        return {
-          title: "High Probability of COVID-19",
-          description:
-            "The findings strongly suggest COVID-19 pneumonia. Bilateral, peripheral, and basal predominant ground-glass opacities are typical.",
-          icon: <AlertTriangle className="h-5 w-5 text-red-500" />,
-          recommendations: [
-            "Confirm with PCR or antigen testing if not already done",
-            "Consider isolation protocols as per institutional guidelines",
-            "Evaluate oxygen saturation and respiratory status",
-            "Consider CT scan for patients with severe symptoms or deteriorating condition",
-          ],
-        };
-      } else {
-        return {
-          title: "Possible COVID-19",
-          description:
-            "Some findings suggestive of COVID-19 pneumonia, but lower confidence. Consider other viral pneumonias in differential.",
-          icon: <AlertTriangle className="h-5 w-5 text-yellow-500" />,
-          recommendations: [
-            "Confirm with PCR or antigen testing",
-            "Consider other viral pneumonia etiologies",
-            "Follow up imaging in 24-48 hours if clinical condition worsens",
-            "Monitor oxygen saturation",
-          ],
-        };
-      }
+    if (uiDecision?.type === "other_pulmonary_disease") {
+      const labels =
+        uiDecision.detected_labels && uiDecision.detected_labels.length > 0
+          ? uiDecision.detected_labels.join(", ")
+          : "autre anomalie pulmonaire";
+
+      return {
+        title: uiDecision.title || "Anomalie pulmonaire détectée",
+        description:
+          uiDecision.message ||
+          `Le système n’a pas détecté une pneumonie, mais il a détecté une anomalie possible : ${labels}.`,
+        icon: <AlertTriangle className="h-5 w-5 text-amber-500" />,
+        recommendations: [
+          `Consulter un ${uiDecision.specialist || "pneumologue"} pour une interprétation médicale complète.`,
+          "Ne pas considérer ce résultat comme un diagnostic final.",
+          "Comparer avec les symptômes, l’examen clinique et les antécédents du patient.",
+          "Prévoir une évaluation spécialisée ou une imagerie complémentaire si nécessaire.",
+        ],
+      };
     }
 
-    // Pneumonia case
-    if (label === "pneumonia") {
-      if (confidence > 0.8) {
-        return {
-          title: "High Probability of Bacterial Pneumonia",
-          description:
-            "Findings consistent with bacterial pneumonia. Lobar consolidation with air bronchograms is typical.",
-          icon: <AlertTriangle className="h-5 w-5 text-red-500" />,
-          recommendations: [
-            "Consider empiric antibiotic therapy based on local guidelines",
-            "Obtain sputum culture if possible before initiating antibiotics",
-            "Assess for pleural effusion and consider thoracentesis if present",
-            "Consider hospital admission based on CURB-65 or PSI score",
-          ],
-        };
-      } else {
-        return {
-          title: "Possible Pneumonia",
-          description:
-            "Some findings suggestive of pneumonia, but with lower confidence.",
-          icon: <AlertTriangle className="h-5 w-5 text-yellow-500" />,
-          recommendations: [
-            "Correlate with clinical symptoms and laboratory findings",
-            "Consider sputum culture and sensitivity",
-            "Follow up imaging in 2-3 days if outpatient management",
-            "Consider bronchoscopy if persistent infiltrate or recurrent pneumonia",
-          ],
-        };
-      }
+    if (uiDecision?.type === "normal") {
+      return {
+        title: uiDecision.title || "Aucune pathologie majeure détectée",
+        description:
+          uiDecision.message ||
+          "Le système n’a pas détecté de pneumonie ni d’autre anomalie pulmonaire significative.",
+        icon: <Stethoscope className="h-5 w-5 text-green-500" />,
+        recommendations: [
+          "Corréler avec les symptômes du patient.",
+          "Consulter un professionnel de santé si les symptômes persistent.",
+          "Faire un suivi médical si le patient présente des facteurs de risque.",
+        ],
+      };
     }
 
-    // Tuberculosis case
-    if (label === "tuberculosis") {
-      if (confidence > 0.8) {
-        return {
-          title: "High Probability of Tuberculosis",
-          description:
-            "Findings highly suggestive of pulmonary tuberculosis. Upper lobe cavitary lesions and/or nodular infiltrates are typical.",
-          icon: <AlertTriangle className="h-5 w-5 text-red-500" />,
-          recommendations: [
-            "Obtain sputum for AFB smear and TB PCR",
-            "Consider respiratory isolation",
-            "Consult infectious disease specialist",
-            "Screen close contacts as per public health guidelines",
-          ],
-        };
-      } else {
-        return {
-          title: "Possible Tuberculosis",
-          description:
-            "Some findings concerning for tuberculosis, but with lower confidence.",
-          icon: <AlertTriangle className="h-5 w-5 text-yellow-500" />,
-          recommendations: [
-            "Obtain sputum for AFB smear and culture",
-            "Consider QuantiFERON or tuberculin skin test",
-            "Consider CT chest for better characterization",
-            "Review risk factors and history of exposure",
-          ],
-        };
-      }
-    }
-
-    // Lung Cancer case
-    if (label === "lung cancer") {
-      if (confidence > 0.8) {
-        return {
-          title: "Suspicious for Malignancy",
-          description:
-            "Findings concerning for primary lung malignancy. Spiculated mass or nodule with associated lymphadenopathy.",
-          icon: <AlertTriangle className="h-5 w-5 text-red-500" />,
-          recommendations: [
-            "Urgent CT chest with contrast",
-            "Consider PET-CT for staging",
-            "Pulmonology or thoracic surgery consult for tissue diagnosis",
-            "Evaluate for metastatic disease",
-          ],
-        };
-      } else {
-        return {
-          title: "Indeterminate Pulmonary Nodule/Mass",
-          description:
-            "Findings concerning for possible malignancy, but with lower confidence.",
-          icon: <AlertTriangle className="h-5 w-5 text-yellow-500" />,
-          recommendations: [
-            "CT chest with contrast",
-            "Consider PET-CT if > 8mm solid nodule",
-            "Review prior imaging if available",
-            "Follow Fleischner Society guidelines for pulmonary nodule follow-up",
-          ],
-        };
-      }
-    }
-
-    // Default case for other predictions
     return {
-      title: "Indeterminate Findings",
+      title: "Clinical Decision Support",
       description:
         "The findings are non-specific and may require further evaluation.",
-      icon: <BookOpen className="h-5 w-5 text-green-500" />,
+      icon: <BookOpen className="h-5 w-5 text-sky-500" />,
       recommendations: [
-        "Correlate with clinical symptoms and laboratory findings",
-        "Consider additional imaging studies based on clinical suspicion",
-        "Follow up chest X-ray in 4-6 weeks to assess for resolution or progression",
-        "Consider pulmonology consultation if persistent abnormalities",
+        "Correlate with clinical symptoms and laboratory findings.",
+        "Consider additional imaging studies based on clinical suspicion.",
+        "Consider pulmonology consultation if persistent abnormalities.",
       ],
     };
   };
@@ -250,10 +108,39 @@ const RuleBasedAdvice: React.FC<RuleBasedAdviceProps> = ({
         {advice.description}
       </p>
 
+      {uiDecision?.type === "other_pulmonary_disease" &&
+        uiDecision?.diseases &&
+        uiDecision.diseases.length > 0 && (
+          <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50 p-4">
+            <h4 className="text-sm font-semibold text-amber-900 mb-2">
+              Maladie(s) possible(s) détectée(s)
+            </h4>
+
+            <ul className="space-y-2">
+              {uiDecision.diseases.map((disease: any, index: number) => (
+                <li
+                  key={index}
+                  className="flex justify-between text-sm text-amber-900"
+                >
+                  <span>{disease.label}</span>
+                  <span className="font-semibold">
+                    {Number(
+                      disease.percentage ??
+                        ((disease.probability ?? disease.confidence ?? 0) * 100)
+                    ).toFixed(2)}
+                    %
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
       <div>
         <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
           Recommendations
         </h4>
+
         <ul className="space-y-2">
           {advice.recommendations.map((rec, index) => (
             <li key={index} className="flex items-start">

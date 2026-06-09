@@ -49,64 +49,108 @@ export default function ResultPage() {
     }
   }, [router]);
 
-  const processResults = (data: any): AnalysisResult => {
-    const processedData: AnalysisResult = { ...data };
+const processResults = (data: any): AnalysisResult => {
+  const processedData: AnalysisResult = { ...data };
 
-    if (data.prediction && data.prediction.probabilities) {
-      const probs = data.prediction.probabilities;
+  const finalDiseases = Array.isArray(data.final_detected_diseases)
+    ? data.final_detected_diseases
+    : [];
 
-      processedData.predictions = [
-        {
-          label: "Normal",
-          confidence: Number(probs.NORMAL ?? data.Normal ?? 0),
-        },
-        {
-          label: "Pneumonia",
-          confidence: Number(probs.PNEUMONIA ?? data.Pneumonia ?? 0),
-        },
-      ].sort((a, b) => b.confidence - a.confidence);
+  if (finalDiseases.length > 0) {
+    processedData.predictions = finalDiseases.map((disease: any) => ({
+      label: disease.label,
+      confidence: Number(
+        disease.probability ?? disease.confidence ?? 0
+      ),
+    }));
 
-      processedData.topPrediction = {
-        label: data.prediction.label === "PNEUMONIA" ? "Pneumonia" : "Normal",
-        confidence: Number(data.prediction.confidence ?? 0),
-      };
+    const predictions = processedData.predictions ?? [];
 
-      if (
-        processedData.topPrediction.label === "Pneumonia" &&
-        processedData.topPrediction.confidence >= HIGH_RISK_THRESHOLD
-      ) {
-        setHighRiskCondition({
-          name: "Pneumonia",
-          confidence: processedData.topPrediction.confidence,
-        });
-      } else {
-        setHighRiskCondition(null);
-      }
+    const topDisease = [...predictions].sort(
+      (a, b) => b.confidence - a.confidence
+    )[0];
 
-      return processedData;
-    }
 
-    const normalValue = Number(data["Normal"] ?? 0);
-    const pneumoniaValue = Number(data["Pneumonia"] ?? 0);
+    processedData.topPrediction = topDisease;
 
-    processedData.predictions = [
-      { label: "Normal", confidence: normalValue },
-      { label: "Pneumonia", confidence: pneumoniaValue },
-    ].sort((a, b) => b.confidence - a.confidence);
-
-    processedData.topPrediction = processedData.predictions[0];
-
-    if (pneumoniaValue >= HIGH_RISK_THRESHOLD) {
+    if (
+      data.prediction?.has_pneumonia === true &&
+      Number(data.prediction?.confidence ?? 0) >= HIGH_RISK_THRESHOLD
+    ) {
       setHighRiskCondition({
         name: "Pneumonia",
-        confidence: pneumoniaValue,
+        confidence: Number(data.prediction.confidence),
       });
     } else {
       setHighRiskCondition(null);
     }
 
     return processedData;
-  };
+  }
+
+  if (data.prediction && data.prediction.probabilities) {
+    const probs = data.prediction.probabilities;
+
+    const normalConfidence = Number(
+      probs.NORMAL ?? probs.Normal ?? probs["No Finding"] ?? data.Normal ?? 0
+    );
+
+    const pneumoniaConfidence = Number(
+      probs.PNEUMONIA ?? probs.Pneumonia ?? data.Pneumonia ?? 0
+    );
+
+    processedData.predictions = [
+      {
+        label: "Normal",
+        confidence: normalConfidence,
+      },
+      {
+        label: "Pneumonia",
+        confidence: pneumoniaConfidence,
+      },
+    ].sort((a, b) => b.confidence - a.confidence);
+
+    processedData.topPrediction = {
+      label: data.prediction.label ?? processedData.predictions[0].label,
+      confidence: Number(data.prediction.confidence ?? 0),
+    };
+
+    if (
+      data.prediction.has_pneumonia === true &&
+      processedData.topPrediction.confidence >= HIGH_RISK_THRESHOLD
+    ) {
+      setHighRiskCondition({
+        name: "Pneumonia",
+        confidence: processedData.topPrediction.confidence,
+      });
+    } else {
+      setHighRiskCondition(null);
+    }
+
+    return processedData;
+  }
+
+  const normalValue = Number(data["Normal"] ?? 0);
+  const pneumoniaValue = Number(data["Pneumonia"] ?? 0);
+
+  processedData.predictions = [
+    { label: "Normal", confidence: normalValue },
+    { label: "Pneumonia", confidence: pneumoniaValue },
+  ].sort((a, b) => b.confidence - a.confidence);
+
+  processedData.topPrediction = processedData.predictions[0];
+
+  if (pneumoniaValue >= HIGH_RISK_THRESHOLD) {
+    setHighRiskCondition({
+      name: "Pneumonia",
+      confidence: pneumoniaValue,
+    });
+  } else {
+    setHighRiskCondition(null);
+  }
+
+  return processedData;
+};
 
   const handleDownloadReport = async () => {
     if (!result) return;
@@ -144,18 +188,26 @@ export default function ResultPage() {
       }
 
       const sortedConditions =
-        result?.predictions && Array.isArray(result.predictions)
-          ? result.predictions.map(
-              (p) => [p.label, p.confidence] as [string, number]
+        result.final_detected_diseases && result.final_detected_diseases.length > 0
+        ? result.final_detected_diseases.map(
+            (disease) =>
+              [
+                disease.label,
+                Number(disease.probability ?? disease.confidence ?? 0),
+              ] as [string, number]
+          )
+        : result?.predictions && Array.isArray(result.predictions)
+        ? result.predictions.map(
+            (p) => [p.label, p.confidence] as [string, number]
+          )
+        : Object.entries(result || {})
+            .filter(
+              ([key, value]) =>
+                ["Normal", "Pneumonia"].includes(key) &&
+                typeof value === "number"
             )
-          : Object.entries(result || {})
-              .filter(
-                ([key, value]) =>
-                  ["Normal", "Pneumonia"].includes(key) &&
-                  typeof value === "number"
-              )
-              .sort(([, a], [, b]) => Number(b) - Number(a))
-              .slice(0, 2);
+            .sort(([, a], [, b]) => Number(b) - Number(a))
+            .slice(0, 2);
 
       let yPos = 120;
       pdf.setFontSize(14);
@@ -196,6 +248,27 @@ export default function ResultPage() {
           yPos += 8;
         }
       }
+      if (result.ui_decision) {
+  yPos += 4;
+  pdf.setFontSize(14);
+  pdf.text("AI Decision Support:", 20, yPos);
+  yPos += 10;
+
+  pdf.setFontSize(11);
+  const decisionText = `${result.ui_decision.title}: ${result.ui_decision.message}`;
+  const splitDecisionText = pdf.splitTextToSize(decisionText, 170);
+  pdf.text(splitDecisionText, 25, yPos);
+  yPos += splitDecisionText.length * 6 + 4;
+
+  if (result.ui_decision.specialist_required) {
+    pdf.text(
+      `Recommended specialist: ${result.ui_decision.specialist || "Pulmonologist"}`,
+      25,
+      yPos
+    );
+    yPos += 8;
+  }
+}
 
       yPos += 4;
       pdf.setFontSize(14);
@@ -266,13 +339,32 @@ export default function ResultPage() {
             />
           </div>
         )}
+       
+        
+        {result?.ui_decision?.type === "other_pulmonary_disease" && (
+  <div className="mb-6 rounded-2xl border border-amber-300 bg-amber-50 p-6 shadow-sm">
+    <h2 className="text-xl font-bold text-amber-900">
+      {result.ui_decision.title}
+    </h2>
 
+    <p className="mt-2 text-sm leading-6 text-amber-800">
+      {result.ui_decision.message}
+    </p>
+
+
+    <div className="mt-4 rounded-xl bg-amber-100 px-4 py-3 text-sm text-amber-900">
+      <strong>Décision recommandée :</strong>{" "}
+      Veuillez consulter un {result.ui_decision.specialist || "pneumologue"}.
+    </div>
+  </div>
+)}
+        {/* start bottons */}
         <div className="flex items-center justify-between mb-8">
           <div>
             <Link
               href="/analyze"
               className="inline-flex items-center px-4 py-2 bg-sky-600 text-white rounded-xl hover:bg-sky-700 mb-3"
-            >
+              >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Analyze
             </Link>
@@ -282,11 +374,12 @@ export default function ResultPage() {
             onClick={handleDownloadReport}
             disabled={isDownloading}
             className="inline-flex items-center px-4 py-2 bg-sky-600 text-white rounded-xl hover:bg-sky-700 disabled:opacity-50"
-          >
+            >
             <Download className="w-4 h-4 mr-2" />
             {isDownloading ? "Generating..." : "Download Report"}
           </button>
         </div>
+        {/* start bottons */}
 
         <div
           id="diagnosis-report"
