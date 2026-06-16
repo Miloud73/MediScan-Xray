@@ -116,19 +116,20 @@ useEffect(() => {
             </div>
 
             <LoginForm  isAdminLogin={isAdminLogin} redirect={redirect}/>
-
-            <div className="mt-6 text-center">
-              <p className="text-sm text-gray-300">
-                Don't have an account?{" "}
-                <Link
-                  href="/register"
-                  className="text-green-400 hover:underline font-medium"
-                >
-                  Create an account
-                </Link>
-              </p>
+            
+           {isAdminLogin ? ' '
+            :<div className="mt-6 text-center">
+                <p className="text-sm text-gray-300">
+                  Don't have an account?{" "}
+                  <Link
+                    href="/register"
+                    className="text-green-400 hover:underline font-medium"
+                  >
+                    Create an account
+                  </Link>
+                </p>
+              </div>}
             </div>
-          </div>
         </div>
       </div>
     </div>

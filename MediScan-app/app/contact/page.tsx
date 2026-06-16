@@ -86,7 +86,7 @@ export default function ContactPage() {
                     href="mailto:info@cdss-xray.example"
                     className="text-gray-600 dark:text-gray-400 hover:text-[#24AE7C] dark:hover:text-green-400 transition-colors"
                   >
-                    info@cdss-xray.example
+                    info@mediscan-ai.example
                   </a>
                 </div>
               </li>
@@ -95,7 +95,7 @@ export default function ContactPage() {
                 <div>
                   <p className="font-medium">Phone</p>
                   <p className="text-gray-600 dark:text-gray-400">
-                    +1 (555) 123-4567
+                    +213 (55) 123-4567
                   </p>
                 </div>
               </li>
@@ -108,7 +108,7 @@ export default function ContactPage() {
                     <br />
                     123 Medical Drive
                     <br />
-                    Boston, MA 02115
+                    Algeria , Sidi Bel Abbes
                   </p>
                 </div>
               </li>
@@ -117,9 +117,9 @@ export default function ContactPage() {
             <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
               <h3 className="font-medium mb-3">Office Hours</h3>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Monday - Friday: 9:00 AM - 5:00 PM
+                Sunday - Saturday: 7:00 AM - 6:00 PM
                 <br />
-                Saturday - Sunday: Closed
+                Friday : Closed
               </p>
             </div>
           </div>
@@ -302,10 +302,10 @@ export default function ContactPage() {
           <p className="text-gray-700 dark:text-gray-300">
             Please contact us at{" "}
             <a
-              href="mailto:partnerships@cdss-xray.example"
+              href="mailto:partnerships@mediscan-ai.example"
               className="text-[#24AE7C] dark:text-green-400 hover:underline"
             >
-              partnerships@cdss-xray.example
+              partnerships@mediscan-ai.example
             </a>{" "}
             with details about your organization and interests.
           </p>
