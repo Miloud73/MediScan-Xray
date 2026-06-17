@@ -8,3 +8,11 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path('profile/', views.profile_view, name='profile'),
 ]
+
+from rest_framework.routers import DefaultRouter
+from .views import UserAdminViewSet
+
+router = DefaultRouter()
+router.register(r'users', UserAdminViewSet)
+
+urlpatterns += router.urls

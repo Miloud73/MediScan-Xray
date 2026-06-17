@@ -27,3 +27,20 @@ class UserSerializer(serializers.ModelSerializer):
             birth_date=validated_data.get('birth_date', None)
         )
         return user
+    
+from django.contrib.auth import get_user_model
+
+from rest_framework import serializers
+User = get_user_model()
+
+class UserAdminSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "username",
+            "email",
+            "is_staff",
+            "is_superuser",
+            "date_joined",
+        ]

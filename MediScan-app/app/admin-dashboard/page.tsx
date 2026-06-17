@@ -73,6 +73,46 @@ export default function AdminDashboardPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
+  const [editingUser, setEditingUser] = useState<UserRow | null>(null);
+const [showModal, setShowModal] = useState(false);
+const handleEdit = (user: UserRow) => {
+  setEditingUser(user);
+  setShowModal(true);
+};
+
+const handleDelete = async (id: number) => {
+  if (!confirm("Delete this user ?")) return;
+
+  const token = getToken();
+
+  try {
+    const response = await fetch(
+      `http://127.0.0.1:8000/api/auth/users/${id}/`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Delete failed");
+    }
+
+    setData((prev) =>
+      prev
+        ? {
+            ...prev,
+            users: prev.users.filter((u) => u.id !== id),
+          }
+        : prev
+    );
+  } catch (err) {
+    alert("Unable to delete user");
+  }
+};
+
   const getToken = () => {
     return (
       localStorage.getItem("access") ||
@@ -180,6 +220,52 @@ export default function AdminDashboardPage() {
 
   const stats = data.statistics;
 
+  const saveUser = async () => {
+  if (!editingUser) return;
+
+  const token = getToken();
+
+  try {
+    const response = await fetch(
+      `http://127.0.0.1:8000/api/auth/users/${editingUser.id}/`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          username: editingUser.username,
+          email: editingUser.email,
+          is_staff: editingUser.is_staff,
+          is_superuser: editingUser.is_superuser,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Update failed");
+    }
+
+    const updatedUser = await response.json();
+
+    setData((prev) =>
+      prev
+        ? {
+            ...prev,
+            users: prev.users.map((u) =>
+              u.id === updatedUser.id ? updatedUser : u
+            ),
+          }
+        : prev
+    );
+
+    setShowModal(false);
+  } catch (err) {
+    alert("Unable to update user");
+  }
+};
+
   return (
     <div className="min-h-screen bg-[#131619] px-4 py-8 text-gray-100 md:px-8">
       <motion.div
@@ -274,6 +360,7 @@ export default function AdminDashboardPage() {
                   <th className="px-4 py-3">Confiance</th>
                   <th className="px-4 py-3">Utilisateur</th>
                   <th className="px-4 py-3">Date</th>
+
                 </tr>
               </thead>
 
@@ -305,6 +392,7 @@ export default function AdminDashboardPage() {
                       <td className="px-4 py-3 text-gray-400">
                         {new Date(patient.created_at).toLocaleString()}
                       </td>
+                      
                     </tr>
                   ))
                 )}
@@ -330,6 +418,7 @@ export default function AdminDashboardPage() {
                   <th className="px-4 py-3">Staff</th>
                   <th className="px-4 py-3">Superuser</th>
                   <th className="px-4 py-3">Date inscription</th>
+                  <th className="px-4 py-3">Actions</th>
                 </tr>
               </thead>
 
@@ -346,6 +435,23 @@ export default function AdminDashboardPage() {
                     <td className="px-4 py-3 text-gray-400">
                       {new Date(user.date_joined).toLocaleString()}
                     </td>
+                    <td className="px-4 py-3">
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleEdit(user)}
+                            className="rounded-lg bg-blue-600 px-3 py-1 text-white hover:bg-blue-700"
+                          >
+                            Edit
+                          </button>
+
+                          <button
+                            onClick={() => handleDelete(user.id)}
+                            className="rounded-lg bg-red-600 px-3 py-1 text-white hover:bg-red-700"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
                   </tr>
                 ))}
               </tbody>
@@ -353,6 +459,81 @@ export default function AdminDashboardPage() {
           </div>
         </section>
       </motion.div>
+      {showModal && editingUser && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+    <div className="w-full max-w-md rounded-2xl bg-gray-900 p-6">
+      <h2 className="mb-4 text-xl font-bold">
+        Edit User
+      </h2>
+
+      <input
+        className="mb-3 w-full rounded border p-2 text-black"
+        value={editingUser.username}
+        onChange={(e) =>
+          setEditingUser({
+            ...editingUser,
+            username: e.target.value,
+          })
+        }
+      />
+
+      <input
+        className="mb-3 w-full rounded border p-2 text-black"
+        value={editingUser.email}
+        onChange={(e) =>
+          setEditingUser({
+            ...editingUser,
+            email: e.target.value,
+          })
+        }
+      />
+
+      <label className="mb-3 flex gap-2">
+        <input
+          type="checkbox"
+          checked={editingUser.is_staff}
+          onChange={(e) =>
+            setEditingUser({
+              ...editingUser,
+              is_staff: e.target.checked,
+            })
+          }
+        />
+        Staff
+      </label>
+
+      <label className="mb-3 flex gap-2">
+        <input
+          type="checkbox"
+          checked={editingUser.is_superuser}
+          onChange={(e) =>
+            setEditingUser({
+              ...editingUser,
+              is_superuser: e.target.checked,
+            })
+          }
+        />
+        Superuser
+      </label>
+
+      <div className="mt-4 flex justify-end gap-2">
+        <button
+          onClick={() => setShowModal(false)}
+          className="rounded bg-gray-600 px-4 py-2"
+        >
+          Cancel
+        </button>
+
+        <button
+          onClick={saveUser}
+          className="rounded bg-green-600 px-4 py-2"
+        >
+          Save
+        </button>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 }

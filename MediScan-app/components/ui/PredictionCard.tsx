@@ -180,27 +180,7 @@ export default function PredictionCard({ result }: PredictionCardProps) {
         </div>
       )}
 
-      {topPrediction && (
-        <div className="mb-6 rounded-xl bg-slate-50 p-4">
-          <div className="text-sm text-slate-500">Top Prediction</div>
-          <div className="mt-1 text-2xl font-bold text-slate-900">
-            {topPrediction.label === "No Finding" ? "Normal" : topPrediction.label}
-          </div>
-          <div className="mt-2 text-sm text-slate-600">
-            Confidence:{" "}
-            <span className="font-semibold">
-              {(topPrediction.confidence * 100).toFixed(2)}%
-            </span>{" "}
-            · {confidenceLevel}
-          </div>
-
-          {result.prediction?.final_status && (
-            <div className="mt-2 text-sm text-slate-500">
-              Status: {result.prediction.final_status}
-            </div>
-          )}
-        </div>
-      )}
+     
 
      
 

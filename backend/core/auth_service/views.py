@@ -95,3 +95,43 @@ def admin_login_view(request):
             'is_superuser': user.is_superuser,
         }
     }, status=status.HTTP_200_OK)
+    
+    
+    
+from django.contrib.auth import get_user_model
+from rest_framework import viewsets
+from rest_framework.permissions import IsAdminUser
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from .serializers import UserAdminSerializer
+from rest_framework.response import Response
+from rest_framework import status
+User = get_user_model()
+
+class UserAdminViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserAdminSerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdminUser]
+    
+
+    def destroy(self, request, *args, **kwargs):
+        user = self.get_object()
+
+        if user == request.user:
+            return Response(
+                {"error": "You cannot delete your own account."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        return super().destroy(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        user = self.get_object()
+
+        if user.username == "admin":
+            return Response(
+                {"error": "Main admin cannot be modified."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        return super().update(request, *args, **kwargs)
