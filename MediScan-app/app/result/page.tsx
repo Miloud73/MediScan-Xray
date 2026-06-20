@@ -341,23 +341,7 @@ const processResults = (data: any): AnalysisResult => {
         )}
        
         
-        {result?.ui_decision?.type === "other_pulmonary_disease" && (
-          <div className="mb-6 rounded-2xl border border-amber-300 bg-amber-50 p-6 shadow-sm">
-            <h2 className="text-xl font-bold text-amber-900">
-              {result.ui_decision.title}
-            </h2>
-
-            <p className="mt-2 text-sm leading-6 text-amber-800">
-              {result.ui_decision.message}
-            </p>
-
-
-            <div className="mt-4 rounded-xl bg-amber-100 px-4 py-3 text-sm text-amber-900">
-              <strong>Décision recommandée :</strong>{" "}
-              Veuillez consulter un {result.ui_decision.specialist || "pneumologue"}.
-            </div>
-          </div>
-        )}
+        
         {/* start bottons */}
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -381,6 +365,24 @@ const processResults = (data: any): AnalysisResult => {
         </div>
         {/* start bottons */}
 
+        
+        {result?.ui_decision?.type === "other_pulmonary_disease" && (
+          <div className="mb-6 rounded-2xl border border-amber-300 bg-amber-50 p-6 shadow-sm">
+            <h2 className="text-xl font-bold text-amber-900">
+              {result.ui_decision.title}
+            </h2>
+
+            <p className="mt-2 text-sm leading-6 text-amber-800">
+              {result.ui_decision.message}
+            </p>
+
+
+            <div className="mt-4 rounded-xl bg-amber-100 px-4 py-3 text-sm text-amber-900">
+              <strong>Décision recommandée :</strong>{" "}
+              Veuillez consulter un {result.ui_decision.specialist || "pneumologue"}.
+            </div>
+          </div>
+        )}
         <div
           id="diagnosis-report"
           className="grid grid-cols-1 lg:grid-cols-3 gap-6"
@@ -393,7 +395,7 @@ const processResults = (data: any): AnalysisResult => {
                 className="aspect-square w-full"
               />
             )}
-
+          
             <RuleBasedAdvice result={result} />
           </div>
 

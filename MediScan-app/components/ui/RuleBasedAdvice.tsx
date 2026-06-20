@@ -99,7 +99,7 @@ const RuleBasedAdvice: React.FC<RuleBasedAdviceProps> = ({
     <div
       className={`bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 ${className}`}
     >
-      <div className="flex items-center mb-4">
+      <div className="flex items-center mb-4"> 
         {advice.icon}
         <h3 className="text-xl font-bold ml-2">{advice.title}</h3>
       </div>
@@ -107,35 +107,6 @@ const RuleBasedAdvice: React.FC<RuleBasedAdviceProps> = ({
       <p className="mb-4 text-gray-700 dark:text-gray-300">
         {advice.description}
       </p>
-
-      {uiDecision?.type === "other_pulmonary_disease" &&
-        uiDecision?.diseases &&
-        uiDecision.diseases.length > 0 && (
-          <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50 p-4">
-            <h4 className="text-sm font-semibold text-amber-900 mb-2">
-              Maladie(s) possible(s) détectée(s)
-            </h4>
-
-            <ul className="space-y-2">
-              {uiDecision.diseases.map((disease: any, index: number) => (
-                <li
-                  key={index}
-                  className="flex justify-between text-sm text-amber-900"
-                >
-                  <span>{disease.label}</span>
-                  <span className="font-semibold">
-                    {Number(
-                      disease.percentage ??
-                        ((disease.probability ?? disease.confidence ?? 0) * 100)
-                    ).toFixed(2)}
-                    %
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
       <div>
         <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
           Recommendations
